@@ -1,11 +1,11 @@
 use clap::{Parser, Subcommand};
+use colored_json::ToColoredJson;
 use serde_json::json;
 use std::{
     env,
     io::{Read, Write},
     os::unix::net::UnixStream,
 };
-use tracing::info;
 
 use anyhow::{Context, Result};
 
@@ -60,7 +60,7 @@ fn main() -> Result<()> {
             stream.flush()?;
             stream.read_to_string(&mut resp)?;
 
-            println!("{}", resp);
+            println!("{}", resp.to_colored_json_auto()?);
         }
         Commands::Plain {} => todo!(),
         Commands::HomeTimeline {} => {
@@ -78,7 +78,7 @@ fn main() -> Result<()> {
             stream.flush()?;
             stream.read_to_string(&mut resp)?;
 
-            println!("{}", resp);
+            println!("{}", resp.to_colored_json_auto()?);
         }
     }
 

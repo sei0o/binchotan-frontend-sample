@@ -49,6 +49,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "colored_json",
  "dotenvy",
  "serde",
  "serde_json",
@@ -124,6 +125,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2850f2f5a82cbf437dd5af4d49848fbdfc27c157c3d010345776f952765261c5"
 dependencies = [
  "os_str_bytes",
+]
+
+[[package]]
+name = "colored_json"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1fd32eb54d016e203b7c2600e3a7802c75843a92e38ccc4869aefeca21771a64"
+dependencies = [
+ "ansi_term",
+ "atty",
+ "libc",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
