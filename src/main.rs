@@ -29,7 +29,7 @@ enum Commands {
     },
 
     /// Calls home_timeline method
-    Home {
+    HomeTimeline {
         // TODO
     },
 }
@@ -63,7 +63,23 @@ fn main() -> Result<()> {
             println!("{}", resp);
         }
         Commands::Plain {} => todo!(),
-        Commands::Home {} => todo!(),
+        Commands::HomeTimeline {} => {
+            println!("sending home_timeline request");
+
+            let payload = json!({
+                "jsonrpc": JSONRPC_VERSION,
+                "id": id,
+                "method": "v0.home_timeline",
+            })
+            .to_string();
+            let mut resp = String::new();
+            stream.write_all(payload.as_bytes())?;
+            stream.write_all(b"\n")?;
+            stream.flush()?;
+            stream.read_to_string(&mut resp)?;
+
+            println!("{}", resp);
+        }
     }
 
     Ok(())
