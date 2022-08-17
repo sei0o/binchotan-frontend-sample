@@ -5,8 +5,9 @@ use std::{
     io::{Read, Write},
     os::unix::net::UnixStream,
 };
+use tracing::info;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 
 const JSONRPC_VERSION: &str = "2.0";
 
@@ -38,12 +39,15 @@ fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
 
     let sock_path = env::var("SOCKET_PATH")?;
-    let mut stream = UnixStream::connect(sock_path)?;
+    let mut stream = UnixStream::connect(sock_path)
+        .context("could not connect to the socket. Is the backend running?")?;
     let id = uuid::Uuid::new_v4().to_string();
 
     let args = Args::parse();
     match args.command {
         Commands::Status => {
+            println!("sending status request");
+
             let payload = json!({
                 "jsonrpc": JSONRPC_VERSION,
                 "id": id,
@@ -52,6 +56,8 @@ fn main() -> Result<()> {
             .to_string();
             let mut resp = String::new();
             stream.write_all(payload.as_bytes())?;
+            stream.write_all(b"\n")?;
+            stream.flush()?;
             stream.read_to_string(&mut resp)?;
 
             println!("{}", resp);
