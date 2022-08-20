@@ -2,7 +2,6 @@ use clap::{Parser, Subcommand};
 use colored_json::ToColoredJson;
 use serde_json::json;
 use std::{
-    collections::HashMap,
     env,
     io::{Read, Write},
     os::unix::net::UnixStream,
@@ -33,7 +32,7 @@ enum Commands {
 
     /// Calls home_timeline method
     HomeTimeline {
-        // TODO
+        params: Option<String>, // in JSON format
     },
 }
 
@@ -95,12 +94,15 @@ fn main() -> Result<()> {
 
             println!("{}", resp.to_colored_json_auto()?);
         }
-        Commands::HomeTimeline {} => {
+        Commands::HomeTimeline { params } => {
             println!("sending home_timeline request");
+            let params = params.unwrap_or_else(|| "{}".to_string());
+            let params: serde_json::Value = serde_json::from_str(&params)?;
 
             let payload = json!({
                 "jsonrpc": JSONRPC_VERSION,
                 "id": id,
+                "params": params,
                 "method": "v0.home_timeline",
             })
             .to_string();
