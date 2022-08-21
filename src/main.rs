@@ -38,7 +38,6 @@ enum Commands {
 
 fn main() -> Result<()> {
     dotenvy::dotenv().ok();
-    tracing_subscriber::fmt::init();
 
     let args = Args::parse();
 
@@ -47,24 +46,16 @@ fn main() -> Result<()> {
         .context("could not connect to the socket. Is the backend running?")?;
     let id = uuid::Uuid::new_v4().to_string();
 
-    match args.command {
+    let payload = match args.command {
         Commands::Status => {
             println!("sending status request");
 
-            let payload = json!({
+            json!({
                 "jsonrpc": JSONRPC_VERSION,
                 "id": id,
                 "method": "v0.status",
             })
-            .to_string();
-            println!("{payload}");
-            let mut resp = String::new();
-            stream.write_all(payload.as_bytes())?;
-            stream.write_all(b"\n")?;
-            stream.flush()?;
-            stream.read_to_string(&mut resp)?;
-
-            println!("{}", resp.to_colored_json_auto()?);
+            .to_string()
         }
         Commands::Plain {
             http_method,
@@ -74,7 +65,7 @@ fn main() -> Result<()> {
             println!("sending plain request");
             let params_val: serde_json::Value = serde_json::from_str(&params)?;
 
-            let payload = json!({
+            json!({
                 "jsonrpc": JSONRPC_VERSION,
                 "id": id,
                 "params": {
@@ -85,36 +76,32 @@ fn main() -> Result<()> {
                 },
                 "method": "v0.plain",
             })
-            .to_string();
-            let mut resp = String::new();
-            stream.write_all(payload.as_bytes())?;
-            stream.write_all(b"\n")?;
-            stream.flush()?;
-            stream.read_to_string(&mut resp)?;
-
-            println!("{}", resp.to_colored_json_auto()?);
+            .to_string()
         }
         Commands::HomeTimeline { params } => {
             println!("sending home_timeline request");
             let params = params.unwrap_or_else(|| "{}".to_string());
             let params: serde_json::Value = serde_json::from_str(&params)?;
 
-            let payload = json!({
+            json!({
                 "jsonrpc": JSONRPC_VERSION,
                 "id": id,
                 "params": params,
                 "method": "v0.home_timeline",
             })
-            .to_string();
-            let mut resp = String::new();
-            stream.write_all(payload.as_bytes())?;
-            stream.write_all(b"\n")?;
-            stream.flush()?;
-            stream.read_to_string(&mut resp)?;
-
-            println!("{}", resp.to_colored_json_auto()?);
+            .to_string()
         }
-    }
+    };
+
+    println!("{payload}");
+
+    let mut resp = String::new();
+    stream.write_all(payload.as_bytes())?;
+    stream.write_all(b"\n")?;
+    stream.flush()?;
+    stream.read_to_string(&mut resp)?;
+
+    println!("{}", resp.to_colored_json_auto()?);
 
     Ok(())
 }
