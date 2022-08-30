@@ -1,7 +1,6 @@
 # binchotan-frontend-sample
 
-An example frontend implementation for [binchotan](http://github.com/sei
-0o/binchotan-backend). Works on command line and provides with simple communication between backends.
+An example frontend implementation for [binchotan](http://github.com/sei0o/binchotan-backend). Works on command line and provides with simple communication between backends.
 
 ## Installation
 
