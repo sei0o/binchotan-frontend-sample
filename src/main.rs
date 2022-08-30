@@ -34,6 +34,12 @@ enum Commands {
     HomeTimeline {
         params: Option<String>, // in JSON format
     },
+
+    /// Calls account.list method to list authorized accounts
+    AccountList,
+
+    /// Calls account.add method to authenticate with another account
+    AccountAdd,
 }
 
 fn main() -> Result<()> {
@@ -88,6 +94,26 @@ fn main() -> Result<()> {
                 "id": id,
                 "params": params,
                 "method": "v0.home_timeline",
+            })
+            .to_string()
+        }
+        Commands::AccountList => {
+            println!("sending accounts list request");
+
+            json!({
+                "jsonrpc": JSONRPC_VERSION,
+                "id": id,
+                "method": "v0.account.list",
+            })
+            .to_string()
+        }
+        Commands::AccountAdd => {
+            println!("sending accounts add request");
+
+            json!({
+                "jsonrpc": JSONRPC_VERSION,
+                "id": id,
+                "method": "v0.account.add",
             })
             .to_string()
         }
