@@ -36,10 +36,10 @@ enum Commands {
     },
 
     /// Calls account.list method to list authorized accounts
-    AccountList,
+    AccountList { session: String },
 
     /// Calls account.add method to authenticate with another account
-    AccountAdd,
+    AccountAdd { session: Option<String> },
 }
 
 fn main() -> Result<()> {
@@ -52,6 +52,7 @@ fn main() -> Result<()> {
         .context("could not connect to the socket. Is the backend running?")?;
     let id = uuid::Uuid::new_v4().to_string();
 
+    let mut add_account = false;
     let payload = match args.command {
         Commands::Status => {
             println!("sending status request");
@@ -60,6 +61,8 @@ fn main() -> Result<()> {
                 "jsonrpc": JSONRPC_VERSION,
                 "id": id,
                 "method": "v0.status",
+                // FIXME: this should be able to be omitted (see backend's Method struct)
+                "params": {},
             })
             .to_string()
         }
@@ -97,22 +100,29 @@ fn main() -> Result<()> {
             })
             .to_string()
         }
-        Commands::AccountList => {
+        Commands::AccountList { session } => {
             println!("sending accounts list request");
 
             json!({
                 "jsonrpc": JSONRPC_VERSION,
                 "id": id,
+                "params": {
+                    "session_key": session,
+                },
                 "method": "v0.account.list",
             })
             .to_string()
         }
-        Commands::AccountAdd => {
+        Commands::AccountAdd { session } => {
             println!("sending accounts add request");
+            add_account = true;
 
             json!({
                 "jsonrpc": JSONRPC_VERSION,
                 "id": id,
+                "params": {
+                    "session_key": session
+                },
                 "method": "v0.account.add",
             })
             .to_string()
@@ -128,6 +138,15 @@ fn main() -> Result<()> {
     stream.read_to_string(&mut resp)?;
 
     println!("{}", resp.to_colored_json_auto()?);
+
+    if add_account {
+        let payload: serde_json::Value = serde_json::from_str(&resp)?;
+        let auth_url = payload["result"]["auth_url"]
+            .as_str()
+            .expect("auth_url is not given");
+
+        open::that(auth_url).unwrap_or_else(|_| println!("Browse to: {}", auth_url));
+    }
 
     Ok(())
 }
